@@ -31,7 +31,7 @@ def matrix_addition(matrix_1, matrix_2):
 
 
 def matrix_multiplication(matrix, multiplier):
-    multi_matrix = [] #[multiplier * matrix[i][j] for i in range(len(matrix)) for j in range(len(matrix[0]))]
+    multi_matrix = []
     for i in range(len(matrix)):
         temp = []
         for j in range(len(matrix[0])):
