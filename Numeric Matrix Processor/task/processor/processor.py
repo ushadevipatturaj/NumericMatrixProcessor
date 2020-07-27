@@ -1,5 +1,6 @@
 import math
 
+
 def create_matrix(number):
     row, column = map(int, input("Enter size of {} matrix:".format(number)).split(" "))
     print("Enter {} matrix:".format(number))
@@ -47,11 +48,16 @@ def matrix_multiplication_with_constant(matrix, multiplier):
             result = matrix[i][j] * multiplier
             if result == 0.0:
                 temp.append(0)
+            elif "." in str(result):
+                if result < 0:
+                    result = math.floor(abs(result) * 10 ** 2) / 10 ** 2
+                    temp.append(result * -1)
+                else:
+                    temp.append(math.floor(abs(result) * 10 ** 2) / 10 ** 2)
             else:
                 temp.append(result)
         multi_matrix.append(temp)
     return multi_matrix
-
 
 
 def matrices_multiplication(matrix_1, matrix_2):
@@ -124,51 +130,60 @@ def find_cofactor(matrix):
     return determinant
 
 
-def find_adjoint(matrix):
-    inverse_cofactor = []
-    if len(matrix) == 2 and len(matrix[0]) == 2:
-        return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
-    else:
-        for i in range(len(matrix)):
-            temp_cofactor = []
-            for j in range(len(matrix[0])):
-                temp = matrix[i][j]
-                cofactor_matrix = []
-                for x in range(len(matrix)):
-                    inner = []
-                    for y in range(len(matrix[0])):
-                        if x == i:
-                            continue
-                        if y == j:
-                            continue
-                        elif x != i and y != j:
-                            inner.append(matrix[x][y])
-                    if len(inner) > 0:
-                        cofactor_matrix.append(inner)
-                determinant = pow(-1, i) * find_adjoint(cofactor_matrix)
-                temp_cofactor.append(determinant)
-            inverse_cofactor.append(temp_cofactor)
-    return inverse_cofactor
+def eliminate(r1, r2, col, target=0):
+    fac = (r2[col] - target) / r1[col]
+    for i in range(len(r2)):
+        r2[i] -= fac * r1[i]
 
 
-def matrix_inverse(matrix):
-    if len(matrix) <= 2 and len(matrix[0]) <= 2:
-        print("This matrix doesn't have an inverse.")
-        return 0
+def gauss(a):
+    for i in range(len(a)):
+        if a[i][i] == 0:
+            for j in range(i + 1, len(a)):
+                if a[i][j] != 0:
+                    a[i], a[j] = a[j], a[i]
+                    break
+            else:
+                print("This matrix doesn't have an inverse.")
+                return -1
+        for j in range(i + 1, len(a)):
+            eliminate(a[i], a[j], i)
+    for i in range(len(a) - 1, -1, -1):
+        for j in range(i - 1, -1, -1):
+            eliminate(a[i], a[j], i)
+    for i in range(len(a)):
+        eliminate(a[i], a[i], i, target=1)
+    return a
+
+
+def inverse(a):
+    tmp = [[] for _ in a]
+    for i, row in enumerate(a):
+        assert len(row) == len(a)
+        tmp[i].extend(row + [0] * i + [1] + [0] * (len(a) - i - 1))
+    return_val = gauss(tmp)
+    ret = []
+    if return_val != -1:
+        for i in range(len(tmp)):
+            ret.append(tmp[i][len(tmp[i]) // 2:])
     else:
-        determinant = matrix_determinant(matrix)
-        if determinant == 0:
-            print("This matrix doesn't have an inverse.")
-            return 0
-        cofactor = find_adjoint(matrix)
-        transposed_cofactor = matrix_transpose(cofactor, 1)
-        print(transposed_cofactor)
-        quotient = round(1.00 / determinant, 7)
-        multiplier = math.floor(abs(quotient) * 10 ** 4) / 10 ** 4
-        if quotient < 0:
-            multiplier = multiplier * -1
-        print(quotient, determinant, quotient)
-        return matrix_multiplication_with_constant(transposed_cofactor, multiplier)
+        return -1
+    inverse_matrix = []
+    for i in range(len(ret)):
+        temp = []
+        for j in range(len(ret[0])):
+            if ret[i][j] == 0.0:
+                temp.append(0)
+            elif "." in str(ret[i][j]):
+                if ret[i][j] < 0:
+                    result = math.floor(abs(ret[i][j]) * 10 ** 2) / 10 ** 2
+                    temp.append(result * -1)
+                else:
+                    temp.append(math.floor(abs(ret[i][j]) * 10 ** 2) / 10 ** 2)
+            else:
+                temp.append(ret[i][j])
+        inverse_matrix.append(temp)
+    return inverse_matrix
 
 
 def play():
@@ -206,8 +221,9 @@ def play():
             print("The result is:\n", determinant, sep="")
         elif play_choice == 6:
             matrix = create_matrix("")
-            inverse_matrix = matrix_inverse(matrix)
-            print_matrix(inverse_matrix)
+            inverse_matrix = inverse(matrix)
+            if inverse_matrix != -1:
+                print_matrix(inverse_matrix)
 
 
 play()
